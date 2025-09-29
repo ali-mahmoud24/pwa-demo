@@ -1,4 +1,5 @@
-const CACHE_NAME = 'pwa-lab-day-1-v-5';
+const CACHE_NAME = 'pwa-lab-day-1-v-1';
+
 const FILES_TO_CACHE = [
   '/',
   '/index.html',
@@ -9,70 +10,119 @@ const FILES_TO_CACHE = [
   '/styles/not-found.css',
   '/styles/offline.css',
 ];
-const neverCache = ['/pages/no-cache.html'];
 
+// Excluded files (never cached)
+const NEVER_CACHE = ['/pages/no-cache.html'];
+
+// Fallback pages
+const OFFLINE_PAGE = '/pages/offline.html';
+const NOT_FOUND_PAGE = '/pages/not-found.html';
+
+// -------------------- Helpers --------------------
+
+async function openCache() {
+  return caches.open(CACHE_NAME);
+}
+
+async function fromCache(request) {
+  const cache = await openCache();
+  return cache.match(request);
+}
+
+async function cachePut(request, response) {
+  const cache = await openCache();
+  await cache.put(request, response);
+}
+
+async function fetchAndCache(request) {
+  const response = await fetch(request);
+
+  if (response && response.status === 200 && request.method === 'GET') {
+    cachePut(request, response.clone());
+  }
+
+  return response;
+}
+
+// -------------------- Service Worker Events --------------------
+
+// Install -> Precache files
 self.addEventListener('install', (event) => {
-  console.log('Service worker installing....', event);
+  console.log('Service worker installing...');
 
   event.waitUntil(
     (async () => {
-      try {
-        const db = await caches.open(CACHE_NAME);
-        await db.addAll(FILES_TO_CACHE);
-      } catch (err) {
-        console.error('Error while caching files:', err);
-      }
+      const cache = await openCache();
+      await cache.addAll(FILES_TO_CACHE);
+      console.log('Pre-cached:', FILES_TO_CACHE);
     })()
   );
 });
 
+// Activate -> Delete old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service worker activating....');
+  console.log('Service worker activating...');
+
+  event.waitUntil(
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            console.log('Deleting old cache:', key);
+            return caches.delete(key);
+          }
+        })
+      );
+    })()
+  );
 });
 
-// Fetch requests
+// Fetch Events -> Cache-first strategy with fallbacks
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     (async () => {
       const url = new URL(event.request.url);
+
+      // Skip excluded files
+      if (NEVER_CACHE.includes(url.pathname)) {
+        try {
+          return await fetch(event.request);
+        } catch {
+          return fromCache(OFFLINE_PAGE);
+        }
+      }
+
+      //  Try cache first
+      const cached = await fromCache(event.request);
+      if (cached) return cached;
+
       try {
-        // Try network first
-        const response = await fetch(event.request);
+        //  If not in cache -> Try network
+        const networkResponse = await fetchAndCache(event.request);
 
-        // Dynamically cache if allowed
-        if (
-          response &&
-          response.status === 200 &&
-          event.request.method === 'GET' &&
-          !neverCache.includes(url.pathname)
-        ) {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, response.clone());
+        if (networkResponse.status === 404) {
+          return fromCache(NOT_FOUND_PAGE);
         }
 
-        console.log(response.status);
-        // If the network returned 404
-        if (response.status === 404) {
-          return caches.match('/pages/not-found.html');
-        }
-
-        return response;
+        return networkResponse;
       } catch (error) {
-        // Offline fallback: check if it exists in cache first
-        const cached = await caches.match(event.request);
-        if (cached) return cached;
+        console.warn('Fetch failed, fallback for:', url.pathname);
 
-        // If the request is for a cached page (pre-cached 404), show 404
-        const pathname = url.pathname;
+        // 1. Cached version if available
+        const cachedPage = await fromCache(event.request);
+        if (cachedPage) return cachedPage;
+
+        // 2. If not precached -> show 404
         if (
-          !FILES_TO_CACHE.includes(pathname) &&
-          !neverCache.includes(pathname)
+          !FILES_TO_CACHE.includes(url.pathname) &&
+          !NEVER_CACHE.includes(url.pathname)
         ) {
-          return caches.match('/pages/not-found.html');
+          return fromCache(NOT_FOUND_PAGE);
         }
 
-        // else, show  offline page
-        return caches.match('/pages/offline.html');
+        // 3. Otherwise -> show offline page
+        return fromCache(OFFLINE_PAGE);
       }
     })()
   );

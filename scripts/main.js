@@ -37,7 +37,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
 installBtn.addEventListener('click', async () => {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
-  const choice = await deferredPrompt.userChoice; // optional
   deferredPrompt = null;
   installBtn.style.display = 'none';
 });
