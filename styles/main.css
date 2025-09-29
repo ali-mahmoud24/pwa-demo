@@ -1,0 +1,70 @@
+/* Reset & base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  background: #f5f7fa;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Headings */
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+p {
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  color: #555;
+}
+
+/* Navigation links */
+nav {
+  margin-top: 1rem;
+}
+
+a {
+  text-decoration: none;
+  color: #fff;
+  background: #3498db;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  margin: 0 0.3rem;
+  transition: background 0.2s ease-in-out;
+}
+
+a:hover {
+  background: #2980b9;
+}
+
+
+/* Basic styling for the install button */
+.install-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 16px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: none; /* hidden by default */
+}
+
+.install-btn:hover {
+  background-color: #0056b3;
+}

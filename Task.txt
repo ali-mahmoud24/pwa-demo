@@ -1,0 +1,8 @@
+Task
+----------------------------------
+1-implement all what we had
+2-handle custom button to display install pop-up
+3-handle offline error by custome page "You are working offline and add anchor tag to home page"
+4-handle wrong url request by custome page "Wrong url and add anchor tag to home page"
+5-save any new request to cache
+6-run website on your mobile
