@@ -1,22 +1,26 @@
-const CACHE_NAME = 'pwa-lab-day-1-v-1';
+const CACHE_NAME = 'pwa-demo-v-1';
+
+const IS_LOCAL =
+  location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const BASE_PATH = IS_LOCAL ? '' : '/pwa-demo';
 
 const FILES_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/pages/offline.html',
-  '/pages/not-found.html',
-  '/pages/cached.html',
-  '/styles/main.css',
-  '/styles/not-found.css',
-  '/styles/offline.css',
+  `${BASE_PATH}/`,
+  `${BASE_PATH}/index.html`,
+  `${BASE_PATH}/pages/offline.html`,
+  `${BASE_PATH}/pages/not-found.html`,
+  `${BASE_PATH}/pages/cached.html`,
+  `${BASE_PATH}/styles/main.css`,
+  `${BASE_PATH}/styles/not-found.css`,
+  `${BASE_PATH}/styles/offline.css`,
 ];
 
 // Excluded files (never cached)
-const NEVER_CACHE = ['/pages/no-cache.html'];
+const NEVER_CACHE = [`${BASE_PATH}/pages/no-cache.html`];
 
 // Fallback pages
-const OFFLINE_PAGE = '/pages/offline.html';
-const NOT_FOUND_PAGE = '/pages/not-found.html';
+const OFFLINE_PAGE = `${BASE_PATH}/pages/offline.html`;
+const NOT_FOUND_PAGE = `${BASE_PATH}/pages/not-found.html`;
 
 // -------------------- Helpers --------------------
 
@@ -53,8 +57,20 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cache = await openCache();
-      await cache.addAll(FILES_TO_CACHE);
-      console.log('Pre-cached:', FILES_TO_CACHE);
+
+      for (const file of FILES_TO_CACHE) {
+        try {
+          const response = await fetch(file);
+          if (response.ok) {
+            await cache.put(file, response.clone());
+            console.log('Cached:', file);
+          } else {
+            console.warn('Skipped (bad response):', file, response.status);
+          }
+        } catch (err) {
+          console.error('Failed to cache:', file, err);
+        }
+      }
     })()
   );
 });
