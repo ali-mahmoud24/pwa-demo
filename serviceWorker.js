@@ -7,8 +7,8 @@ const BASE_PATH = IS_LOCAL ? '' : '/pwa-demo';
 const FILES_TO_CACHE = [
   `${BASE_PATH}/`,
   `${BASE_PATH}/index.html`,
+  `${BASE_PATH}/404.html`,
   `${BASE_PATH}/pages/offline.html`,
-  `${BASE_PATH}/pages/not-found.html`,
   `${BASE_PATH}/pages/cached.html`,
   `${BASE_PATH}/styles/main.css`,
   `${BASE_PATH}/styles/not-found.css`,
@@ -19,8 +19,8 @@ const FILES_TO_CACHE = [
 const NEVER_CACHE = [`${BASE_PATH}/pages/no-cache.html`];
 
 // Fallback pages
+const NOT_FOUND_PAGE = `${BASE_PATH}/404.html`;
 const OFFLINE_PAGE = `${BASE_PATH}/pages/offline.html`;
-const NOT_FOUND_PAGE = `${BASE_PATH}/pages/not-found.html`;
 
 // -------------------- Helpers --------------------
 
