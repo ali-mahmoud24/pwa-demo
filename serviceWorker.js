@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-demo-v-1';
+const CACHE_NAME = 'pwa-demo-v-2';
 
 const IS_LOCAL =
   location.hostname === 'localhost' || location.hostname === '127.0.0.1';
